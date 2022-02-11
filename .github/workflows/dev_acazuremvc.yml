@@ -26,4 +26,11 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Run tests
-        run: dotnet test
+        run: dotnet test --logger trx --results-directory "TestResults"
+
+      - name: Publish test results
+        uses: actions/upload-artifact@v2
+        with:
+          name: dotnet-results
+          path: TestResults
+        if: ${{ always() }}
