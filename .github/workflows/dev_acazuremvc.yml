@@ -31,6 +31,15 @@ jobs:
       - name: Publish test results
         uses: actions/upload-artifact@v2
         with:
-          name: dotnet-results
+          name: test-results
           path: TestResults
         if: ${{ always() }}
+
+      - name: Visualize test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          artifact: test-results
+          name: XUnit Test Results
+          path: '*.xml'
+          reporter: dotnet-trx   
