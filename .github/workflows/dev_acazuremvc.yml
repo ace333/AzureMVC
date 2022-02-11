@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and test
+name: Build and Test
 
 on:
   push:
@@ -33,13 +33,4 @@ jobs:
         with:
           name: test-results
           path: TestResults
-        if: ${{ always() }}
-
-      - name: Visualize test report
-        uses: dorny/test-reporter@v1
-        if: success() || failure()
-        with:
-          artifact: test-results
-          name: XUnit Test Results
-          path: '*.trx'
-          reporter: dotnet-trx   
+        if: ${{ always() }} 
