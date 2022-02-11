@@ -31,4 +31,4 @@ jobs:
 
     steps:
       - name: Run tests
-        run: dotnet test ./AzureMVC.Web.Tests
+        run: dotnet test ./AzureMVC.Web.Tests.csproj
