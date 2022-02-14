@@ -9,8 +9,8 @@ on:
       - master
   workflow_dispatch:
 
-jobs:
-  update-app-settings:
+jobs:      
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,13 +22,6 @@ jobs:
           files: '**/appsettings.json'
         env:
           ConnectionStrings.ACAzureMVCDB: ${{ secrets.ACAZUREMVCDB_CONNECTIONSTRING }}
-      
-  build:
-    runs-on: ubuntu-latest
-    needs: update-app-settings
-
-    steps:
-      - uses: actions/checkout@v2
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v1
@@ -45,7 +38,13 @@ jobs:
         run: dotnet build --configuration Release      
 
       - name: Generate SQL scripts
-        run: dotnet ef migrations script --output ${{env.DOTNET_ROOT}}/sql/sql-script.sql --idempotent --no-build --context DataContext
+        run: dotnet ef migrations script --output ${{env.DOTNET_ROOT}}/sql/sql-script.sql --idempotent --startup-project /home/runner/work/AzureMVC/AzureMVC/AzureMVC.Web
+
+      - name: Upload artifact for SQL scripts
+        uses: actions/upload-artifact@v2
+        with:
+          name: sql-script
+          path: ${{env.DOTNET_ROOT}}/sql/sql-script.sql
 
       - name: Run tests
         run: dotnet test --logger trx --results-directory "TestResults"
@@ -74,12 +73,22 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
+      - name: Download SQL scripts artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: sql-script
+          path: ./sql
+          
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: ./sql
+
       - name: Azure SQL Deploy
-        uses: Azure/sql-action@v1
+        uses: azure/sql-action@v1.2
         with:
           server-name: tcp:acazuredbs.database.windows.net
           connection-string: ${{ secrets.ACAZUREMVCDB_CONNECTIONSTRING }}
-          sql-file: ${{env.DOTNET_ROOT}}/sql/sql-script.sql
+          sql-file: ./sql/sql-script.sql
 
       - name: Download artifact from build job
         uses: actions/download-artifact@v2
